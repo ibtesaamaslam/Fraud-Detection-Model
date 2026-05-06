@@ -1,349 +1,329 @@
-```markdown
-# 💳 Fraud Detection AI
+# 💳 Fraud Detection AI — End-to-End ML System with SHAP + Hugging Face Explainability
 
-> An end-to-end machine learning system for detecting fraudulent credit card
-> transactions — with SHAP-powered explainability and Hugging Face language
-> generation to turn model decisions into plain English.
+<div align="center">
 
----
+![Python](https://img.shields.io/badge/Python-3.8+-3776AB?style=for-the-badge&logo=python&logoColor=white)
+![Scikit-Learn](https://img.shields.io/badge/Scikit--Learn-ML-F7931E?style=for-the-badge&logo=scikitlearn&logoColor=white)
+![XGBoost](https://img.shields.io/badge/XGBoost-Gradient%20Boosting-00ADD8?style=for-the-badge)
+![SHAP](https://img.shields.io/badge/SHAP-Explainability-purple?style=for-the-badge)
+![Streamlit](https://img.shields.io/badge/Streamlit-Dashboard-FF4B4B?style=for-the-badge&logo=streamlit&logoColor=white)
+![License](https://img.shields.io/badge/License-MIT-00C853?style=for-the-badge)
 
-## Table of Contents
+**A production-style, end-to-end machine learning pipeline for detecting fraudulent credit card transactions — featuring a 4-model benchmark, SMOTE class balancing, SHAP per-prediction explainability, DistilGPT-2 plain-English summaries, and an interactive Streamlit dashboard.**
 
-- [Project Overview](#project-overview)
-- [Key Features](#key-features)
-- [How It Works](#how-it-works)
-- [Project Structure](#project-structure)
-- [Dataset](#dataset)
-- [Installation](#installation)
-- [Running the Project](#running-the-project)
-- [Running the Dashboard](#running-the-dashboard)
-- [Models Trained](#models-trained)
-- [Evaluation Metrics](#evaluation-metrics)
-- [Explainability](#explainability)
-- [Generated Outputs](#generated-outputs)
-- [Configuration](#configuration)
-- [Requirements](#requirements)
+[🔗 View Repository](https://github.com/ibtesaamaslam/Fraud-Detection-Model) · [🐛 Report Bug](https://github.com/ibtesaamaslam/Fraud-Detection-Model/issues) · [✨ Request Feature](https://github.com/ibtesaamaslam/Fraud-Detection-Model/issues)
+
+</div>
 
 ---
 
-## Project Overview
+## 📋 Table of Contents
 
-Credit card fraud is a critical problem in financial services. Fraudulent
-transactions are rare — typically less than 0.2% of all activity — which makes
-detection extremely difficult using standard machine learning approaches.
+- [Project Overview](#-project-overview)
+- [Key Features](#-key-features)
+- [8-Stage Pipeline](#-8-stage-pipeline)
+- [Project Structure](#-project-structure)
+- [Dataset](#-dataset)
+- [Feature Engineering](#-feature-engineering)
+- [Models Trained](#-models-trained)
+- [Evaluation Metrics](#-evaluation-metrics)
+- [SHAP Explainability](#-shap-explainability)
+- [Hugging Face Plain-English Explanations](#-hugging-face-plain-english-explanations)
+- [Streamlit Dashboard](#-streamlit-dashboard)
+- [Generated Outputs](#-generated-outputs)
+- [Configuration](#-configuration)
+- [Installation](#-installation)
+- [Running the Project](#-running-the-project)
+- [Running the Dashboard](#-running-the-dashboard)
+- [Requirements](#-requirements)
+- [Roadmap](#-roadmap)
+- [License](#-license)
+
+---
+
+## 📌 Project Overview
+
+Credit card fraud costs the global financial system billions of dollars annually. Fraudulent transactions are rare — typically less than 0.2% of all activity — which makes detection extremely difficult using standard machine learning approaches. A naive model that simply predicts "legitimate" for every transaction would achieve over 99% accuracy while catching zero fraud cases.
 
 This project builds a **complete, production-style AI pipeline** that:
 
 - Ingests raw transaction data from the Kaggle Credit Card Fraud dataset
 - Engineers meaningful features from raw inputs
-- Balances the heavily skewed dataset using **SMOTE** (Synthetic Minority
-  Oversampling Technique)
-- Trains and compares **four machine learning models**
-- Evaluates them using metrics suited to imbalanced classification
+- Handles the severe class imbalance using **SMOTE** (Synthetic Minority Oversampling Technique)
+- Trains and benchmarks **four machine learning models** side by side
+- Evaluates them using metrics designed for imbalanced classification
 - Explains every prediction using **SHAP** (SHapley Additive exPlanations)
-- Converts technical SHAP output into **plain English** using a Hugging Face
-  language model
-- Presents everything through an interactive **Streamlit dashboard**
+- Converts technical SHAP output into plain English using a **Hugging Face DistilGPT-2** language model
+- Presents everything through an interactive **Streamlit dashboard** with three input modes
+- Auto-generates a full Markdown training report after every run
 
 ---
 
-## Key Features
+## ✨ Key Features
 
 | Feature | Description |
 |---|---|
-| Multi-model training | Logistic Regression, Random Forest, XGBoost, LightGBM |
-| Class imbalance handling | SMOTE resampling before training |
-| Rigorous evaluation | ROC-AUC, PR-AUC, Precision, Recall, F1 |
+| Multi-model training | Logistic Regression · Random Forest · XGBoost · LightGBM |
+| Class imbalance handling | SMOTE resampling before training (configurable ratio) |
+| Rigorous evaluation | ROC-AUC · PR-AUC · Precision · Recall · F1 |
 | SHAP explainability | Per-prediction feature contribution breakdown |
-| Human-readable explanations | Hugging Face DistilGPT-2 narrates the SHAP output |
-| Interactive UI | Streamlit dashboard with manual, random, and CSV input modes |
-| Reproducible pipeline | Seeded RNGs, saved scalers, and saved feature name order |
-| Automated reporting | Markdown report generated after every training run |
+| Human-readable explanations | DistilGPT-2 narrates the SHAP output in plain English |
+| Interactive UI | Streamlit dashboard — Manual · Random · CSV input modes |
+| Reproducible pipeline | Seeded RNGs · saved scaler · saved feature name order |
+| Centralized config | All paths and hyperparameters in one `config.py` |
+| Automated reporting | Markdown report + metrics CSV generated after every run |
 
 ---
 
-## How It Works
+## 🔄 8-Stage Pipeline
 
-The pipeline runs in eight sequential stages:
+Run the entire pipeline with a single command: `python main.py`
 
 ```
 Raw CSV
-   │
-   ▼
-1. Load Data          → reads transactions.csv from data/raw/
-   │
-   ▼
-2. EDA                → saves exploratory charts to reports/figures/
-   │
-   ▼
-3. Preprocessing      → feature engineering → train/test split → scaling
-   │
-   ▼
-4. SMOTE Resampling   → balances the fraud class before training
-   │
-   ▼
-5. Model Training     → trains 4 models and saves them to models/
-   │
-   ▼
-6. Evaluation         → scores all models and ranks by ROC-AUC
-   │
-   ▼
-7. Explainability     → SHAP values + Hugging Face plain-English summary
-   │
-   ▼
-8. Report             → writes reports/report.md with results table
+│
+▼
+Stage 1 — Load Data
+  Reads data/raw/transactions.csv · validates shape · logs fraud rate
+│
+▼
+Stage 2 — EDA
+  Class balance chart · amount histogram · time histogram · correlation heatmap
+  → All charts saved to reports/figures/
+│
+▼
+Stage 3 — Preprocessing
+  Feature engineering (Amount_Log, Hour, Is_Large_Amount)
+  → train/test split (80/20, stratified) → StandardScaler
+  → saves scaler.pkl + feature_names.json to data/processed/
+│
+▼
+Stage 4 — SMOTE Resampling
+  Resamples fraud class to SMOTE_RATIO (default 0.2) of majority
+  → prevents dominant legitimate class from biasing all models
+│
+▼
+Stage 5 — Model Training
+  Trains all 4 models on SMOTE-resampled training data
+  → saves each model to models/
+│
+▼
+Stage 6 — Evaluation
+  Scores all models: ROC-AUC · PR-AUC · Precision · Recall · F1
+  → ranks by ROC-AUC · saves best model to models/fraud_model.pkl
+  → saves confusion matrix, ROC, PR, feature importance charts per model
+│
+▼
+Stage 7 — Explainability
+  SHAP values computed for best model
+  → beeswarm summary plot saved → DistilGPT-2 plain-English narration
+│
+▼
+Stage 8 — Report
+  Writes reports/report.md with full results table
+  Writes reports/metrics.csv for downstream analysis
 ```
 
 ---
 
-## Project Structure
+## 📂 Project Structure
 
 ```
 fraud-detection-ai/
 │
 ├── app/
-│   └── streamlit_app.py          # Streamlit UI dashboard
+│   └── streamlit_app.py            # Interactive Streamlit dashboard
 │
 ├── data/
 │   ├── raw/
-│   │   └── transactions.csv      # ← Place Kaggle dataset here
+│   │   └── transactions.csv        # ← Place Kaggle dataset here
 │   ├── processed/
-│   │   ├── X_train.csv           # Scaled training features
-│   │   ├── X_test.csv            # Scaled test features
-│   │   ├── y_train.csv           # Training labels
-│   │   ├── y_test.csv            # Test labels
-│   │   ├── scaler.pkl            # Fitted StandardScaler
-│   │   └── feature_names.json    # Ordered feature column names
+│   │   ├── X_train.csv             # Scaled training features
+│   │   ├── X_test.csv              # Scaled test features
+│   │   ├── y_train.csv             # Training labels
+│   │   ├── y_test.csv              # Test labels
+│   │   ├── scaler.pkl              # Fitted StandardScaler
+│   │   └── feature_names.json      # Ordered feature column names
 │   └── external/
-│       └── huggingface_cache/    # Cached HF model weights
+│       └── huggingface_cache/      # Cached HF model weights
 │
 ├── models/
-│   ├── fraud_model.pkl           # Best model (chosen by ROC-AUC)
+│   ├── fraud_model.pkl             # Best model (selected by ROC-AUC)
 │   ├── random_forest.pkl
 │   ├── xgboost_model.pkl
 │   └── lightgbm_model.pkl
 │
-├── notebooks/                    # Jupyter notebooks for exploration
+├── notebooks/                      # Jupyter notebooks for exploration
 │
 ├── reports/
-│   ├── figures/                  # All saved charts (EDA + evaluation)
-│   └── report.md                 # Auto-generated training report
+│   ├── figures/                    # All generated charts
+│   ├── report.md                   # Auto-generated training report
+│   └── metrics.csv                 # Model comparison table
 │
 ├── src/
 │   ├── data/
-│   │   ├── load_data.py          # Loads raw CSV from disk
-│   │   ├── preprocess.py         # Cleaning, splitting, and scaling
-│   │   └── feature_engineering.py # Derives smart features from raw columns
+│   │   ├── load_data.py            # Loads raw CSV from disk
+│   │   ├── preprocess.py           # Cleaning, splitting, and scaling
+│   │   └── feature_engineering.py  # Derives smart features from raw columns
 │   │
 │   ├── models/
-│   │   ├── train_model.py        # Trains all candidate models
-│   │   ├── evaluate_model.py     # Scores and ranks all models
-│   │   ├── predict.py            # Single-transaction prediction pipeline
-│   │   └── huggingface_model.py  # Hugging Face plain-English explanation
+│   │   ├── train_model.py          # Trains all candidate models
+│   │   ├── evaluate_model.py       # Scores and ranks all models
+│   │   ├── predict.py              # Single-transaction prediction pipeline
+│   │   └── huggingface_model.py    # Hugging Face plain-English explanation
 │   │
 │   ├── explainability/
-│   │   └── shap_explainer.py     # SHAP values and summary plots
+│   │   └── shap_explainer.py       # SHAP values and summary plots
 │   │
 │   ├── visualization/
-│   │   ├── eda.py                # Exploratory data analysis charts
-│   │   └── plots.py              # Confusion matrix, ROC, PR, importance plots
+│   │   ├── eda.py                  # Exploratory data analysis charts
+│   │   └── plots.py                # Confusion matrix, ROC, PR, importance
 │   │
 │   └── utils/
-│       ├── config.py             # All paths and hyperparameters
-│       └── helpers.py            # Shared utility functions
+│       ├── config.py               # All paths and hyperparameters
+│       └── helpers.py              # Shared utility functions
 │
-├── main.py                       # Pipeline entry point
-├── requirements.txt              # Python dependencies
+├── main.py                         # Pipeline entry point
+├── requirements.txt                # Python dependencies
+├── project_structure.md            # Extended structure documentation
+├── workflow.md                     # Pipeline workflow documentation
 └── README.md
 ```
 
 ---
 
-## Dataset
+## 📦 Dataset
 
-This project uses the **Credit Card Fraud Detection** dataset published by the
-Machine Learning Group at ULB (Université Libre de Bruxelles).
+This project uses the **Credit Card Fraud Detection** dataset published by the Machine Learning Group at Université Libre de Bruxelles (ULB).
 
-**Download it here:**
-[https://www.kaggle.com/datasets/mlg-ulb/creditcardfraud](https://www.kaggle.com/datasets/mlg-ulb/creditcardfraud)
+**Download:** [https://www.kaggle.com/datasets/mlg-ulb/creditcardfraud](https://www.kaggle.com/datasets/mlg-ulb/creditcardfraud)
 
-**After downloading, place the file at:**
-
-```
-data/raw/transactions.csv
-```
-
-### Dataset Facts
+**After downloading, rename and place at:** `data/raw/transactions.csv`
 
 | Property | Value |
 |---|---|
-| Total transactions | 284,807 |
-| Fraudulent transactions | 492 (0.17%) |
-| Features | 30 (Time, V1–V28 PCA components, Amount) |
-| Target column | Class (0 = legitimate, 1 = fraud) |
-| File format | CSV |
+| Total Transactions | 284,807 |
+| Fraudulent Transactions | 492 (0.17%) |
+| Legitimate Transactions | 284,315 (99.83%) |
+| Raw Features | 30 (Time · V1–V28 PCA · Amount) |
+| Target Column | Class (0 = legitimate · 1 = fraud) |
 
-> **Note:** The V1–V28 columns are the result of PCA transformation applied by
-> the dataset authors to protect cardholder privacy. No original feature names
-> are available for these columns.
+> **Note:** The V1–V28 columns are PCA-transformed by the dataset authors to protect cardholder privacy. Original feature names are not available.
 
 ---
 
-## Installation
+## 🔧 Feature Engineering
 
-### 1. Clone the repository
+Three smart features are derived from the raw dataset in `src/data/feature_engineering.py`:
 
-```bash
-git clone https://github.com/your-username/fraud-detection-ai.git
-cd fraud-detection-ai
-```
-
-### 2. Create a virtual environment (recommended)
-
-```bash
-python -m venv .venv
-source .venv/bin/activate        # macOS / Linux
-.venv\Scripts\activate           # Windows
-```
-
-### 3. Install dependencies
-
-```bash
-pip install -r requirements.txt
-```
-
-### 4. Place the dataset
-
-Download `creditcard.csv` from Kaggle, rename it to `transactions.csv`, and
-place it at:
-
-```
-data/raw/transactions.csv
-```
+| Feature | Source | Description |
+|---|---|---|
+| `Amount_Log` | Amount | Log-transformed transaction amount — handles the wide right-skewed distribution |
+| `Hour` | Time | Hour of day extracted from the Unix-style Time column (0–23) |
+| `Is_Large_Amount` | Amount | Binary flag: 1 if Amount > $200 (configurable via `LARGE_AMOUNT_THRESHOLD`) |
 
 ---
 
-## Running the Project
+## 🤖 Models Trained
 
-To run the full pipeline from raw data to saved models and reports:
+All models are trained on SMOTE-resampled data where the fraud class is resampled to 20% of the majority class size (`SMOTE_RATIO = 0.2`).
 
-```bash
-python main.py
-```
-
-This will execute all eight pipeline stages in order and produce:
-
-- Processed data splits in `data/processed/`
-- Trained models in `models/`
-- EDA and evaluation charts in `reports/figures/`
-- A final Markdown report at `reports/report.md`
+| Model | Key Settings | Class Imbalance Strategy |
+|---|---|---|
+| Logistic Regression | `max_iter=2000` | `class_weight=balanced` |
+| Random Forest | `n_estimators=200` | `class_weight=balanced_subsample` |
+| XGBoost | `n_estimators=200` · `learning_rate=0.05` · `max_depth=5` | SMOTE pre-training |
+| LightGBM | `n_estimators=200` · `learning_rate=0.05` | SMOTE pre-training |
 
 ---
 
-## Running the Dashboard
+## 📊 Evaluation Metrics
 
-Once `main.py` has completed at least once:
+Standard accuracy is deliberately excluded from model selection — a model predicting "legitimate" for every transaction would achieve 99.83% accuracy while catching zero fraud.
+
+| Metric | Purpose | Used For |
+|---|---|---|
+| **ROC-AUC** | Ranking quality across all thresholds | ✅ Primary model selection |
+| **PR-AUC** | Best metric for severely imbalanced datasets | ✅ Model selection |
+| **Precision** | Of all flagged transactions, how many were actual fraud | ✅ Business impact |
+| **Recall** | Of all actual fraud cases, how many were caught | ✅ Business impact |
+| **F1 Score** | Harmonic mean of precision and recall | ✅ Balanced comparison |
+| Accuracy | Reference only | ❌ Not used for selection |
+
+---
+
+## 🔍 SHAP Explainability
+
+Fraud detection systems must be explainable — regulators and end users need to understand why a specific transaction was flagged.
+
+SHAP assigns each feature a contribution score for every individual prediction:
+- **Positive score** → pushes the model toward predicting fraud
+- **Negative score** → pushes the model toward predicting legitimate
+
+**Example SHAP output:**
+
+```
+V14           (-2.341) → pushes toward safe     🟢
+Amount_Log    (+1.823) → pushes toward fraud     🔴
+Hour          (+0.912) → pushes toward fraud     🔴
+V17           (-0.748) → pushes toward safe      🟢
+V4            (+0.631) → pushes toward fraud     🔴
+```
+
+**Generated SHAP outputs:**
+- Per-prediction top feature contributions (shown in the Streamlit dashboard)
+- Global beeswarm summary plot saved to `reports/figures/shap_summary.png`
+
+---
+
+## 🤖 Hugging Face Plain-English Explanations
+
+The SHAP feature summary is passed as a structured prompt to **DistilGPT-2**, which generates a short, beginner-friendly explanation of the model's decision.
+
+**Example output:**
+```
+"This transaction looks suspicious because the amount is unusually large for
+this time of day, and several anonymised signals are elevated. The model
+estimated a fraud risk of 0.91."
+```
+
+If the Hugging Face model is unavailable (no internet or download fails), a clean, readable static fallback explanation is returned automatically.
+
+---
+
+## 📊 Streamlit Dashboard
+
+Once `main.py` has completed at least once, launch the interactive dashboard:
 
 ```bash
 streamlit run app/streamlit_app.py
 ```
 
-The dashboard offers three input modes:
+**Three input modes:**
 
-| Mode | Description |
-|---|---|
-| Manual | Type raw transaction values directly into the form |
-| Random Sample | Pick a random row from the dataset and predict it |
-| Upload CSV | Upload a single-row CSV file for prediction |
+| Mode | Description | Best For |
+|---|---|---|
+| Manual | Type raw transaction values into the form directly | Testing specific or hypothetical transactions |
+| Random Sample | Picks a random row from the test dataset | Quick demo on real data |
+| Upload CSV | Upload a single-row CSV file | Integration testing |
 
-Each prediction displays:
-
-- Fraud probability score
-- Risk level (Low / Medium / High)
-- Pass or fail banner
-- Plain-English Hugging Face explanation
-- Top SHAP feature contributions
-
----
-
-## Models Trained
-
-| Model | Key Settings |
-|---|---|
-| Logistic Regression | `max_iter=2000`, `class_weight=balanced` |
-| Random Forest | `n_estimators=200`, `class_weight=balanced_subsample` |
-| XGBoost | `n_estimators=200`, `learning_rate=0.05`, `max_depth=5` |
-| LightGBM | `n_estimators=200`, `learning_rate=0.05` |
-
-All models are trained on SMOTE-resampled data where the fraud class is
-resampled to 20% of the majority class size (`SMOTE_RATIO = 0.2`).
+**Every prediction shows:**
+- Fraud probability score (0.00 – 1.00)
+- Risk level: Low / Medium / High
+- Pass ✅ or Fail 🚨 banner
+- DistilGPT-2 plain-English explanation
+- Top SHAP feature contributions ranked by absolute impact
 
 ---
 
-## Evaluation Metrics
+## 📁 Generated Outputs
 
-Standard accuracy is misleading for fraud detection — a model that always
-predicts legitimate would achieve over 99% accuracy while catching zero fraud
-cases. This project uses the following metrics instead:
-
-| Metric | Why It Matters |
-|---|---|
-| **ROC-AUC** | Measures ranking quality across all thresholds — primary sort key |
-| **PR-AUC** | Precision-Recall area under curve — best for imbalanced datasets |
-| **Precision** | Of all flagged transactions, how many were actually fraud |
-| **Recall** | Of all actual fraud cases, how many were caught |
-| **F1 Score** | Harmonic mean of precision and recall |
-| **Accuracy** | Reported for reference only — not used for model selection |
-
-Models are ranked by **ROC-AUC**. The best model is saved separately to
-`models/fraud_model.pkl` for use by the prediction pipeline and dashboard.
-
----
-
-## Explainability
-
-Fraud detection systems must be explainable — regulators and end users need to
-understand why a transaction was flagged. This project uses two layers of
-explainability:
-
-### SHAP (SHapley Additive exPlanations)
-
-SHAP assigns each feature a contribution score for every individual prediction.
-A positive score pushes the model toward fraud; a negative score pushes it
-toward safe.
-
-Example SHAP output:
-```
-V14 (-2.341) pushes toward safe,
-Amount_Log (+1.823) pushes toward fraud,
-Hour (+0.912) pushes toward fraud
-```
-
-### Hugging Face Plain-English Explanation
-
-The SHAP summary is passed as a prompt to a **DistilGPT-2** language model,
-which generates a short, beginner-friendly explanation of the prediction. If
-the model is unavailable, a clean static fallback is returned automatically.
-
-Example output:
-```
-This transaction looks suspicious because the amount is unusually large for
-this time of day, and several anonymised signals are elevated. The model
-estimated a fraud risk of 0.91.
-```
-
----
-
-## Generated Outputs
-
-After running `main.py`, the following files are created automatically:
+After running `main.py`, the following are created automatically:
 
 | File | Description |
 |---|---|
 | `data/processed/X_train.csv` | Scaled training feature matrix |
 | `data/processed/X_test.csv` | Scaled test feature matrix |
-| `data/processed/y_train.csv` | Training labels |
-| `data/processed/y_test.csv` | Test labels |
 | `data/processed/scaler.pkl` | Fitted StandardScaler for inference |
 | `data/processed/feature_names.json` | Ordered feature column list |
 | `models/fraud_model.pkl` | Best model selected by ROC-AUC |
@@ -351,8 +331,6 @@ After running `main.py`, the following files are created automatically:
 | `models/xgboost_model.pkl` | Saved XGBoost |
 | `models/lightgbm_model.pkl` | Saved LightGBM |
 | `reports/figures/class_balance.png` | Fraud vs legitimate count chart |
-| `reports/figures/amount_distribution.png` | Transaction amount histogram |
-| `reports/figures/time_distribution.png` | Transaction time histogram |
 | `reports/figures/correlation_heatmap.png` | Feature correlation heatmap |
 | `reports/figures/*_confusion_matrix.png` | Confusion matrix per model |
 | `reports/figures/*_roc_curve.png` | ROC curve per model |
@@ -360,27 +338,83 @@ After running `main.py`, the following files are created automatically:
 | `reports/figures/*_feature_importance.png` | Feature importance per model |
 | `reports/figures/shap_summary.png` | SHAP beeswarm plot for best model |
 | `reports/report.md` | Full Markdown training summary |
-| `reports/metrics.csv` | Model comparison table |
+| `reports/metrics.csv` | Model comparison table (CSV) |
 
 ---
 
-## Configuration
+## ⚙️ Configuration
 
-All paths and hyperparameters are centralised in `src/utils/config.py`.
-Nothing is hardcoded anywhere else in the codebase.
+All paths and hyperparameters are centralised in `src/utils/config.py`. Nothing is hardcoded elsewhere.
 
 | Setting | Default | Description |
 |---|---|---|
-| `RANDOM_STATE` | `42` | Seed for all RNGs — ensures reproducibility |
+| `RANDOM_STATE` | `42` | Seeds all RNGs — ensures full reproducibility |
 | `TEST_SIZE` | `0.2` | Fraction of data reserved for evaluation |
 | `THRESHOLD` | `0.5` | Minimum probability to classify as fraud |
 | `SMOTE_RATIO` | `0.2` | Fraud class target ratio after resampling |
-| `LARGE_AMOUNT_THRESHOLD` | `200.0` | USD threshold for the Is_Large_Amount flag |
-| `HF_MODEL_NAME` | `distilgpt2` | Hugging Face model for text generation |
+| `LARGE_AMOUNT_THRESHOLD` | `200.0` | USD threshold for `Is_Large_Amount` flag |
+| `HF_MODEL_NAME` | `distilgpt2` | Hugging Face model for explanation generation |
 
 ---
 
-## Requirements
+## 🚀 Installation
+
+**1. Clone the repository:**
+```bash
+git clone https://github.com/ibtesaamaslam/Fraud-Detection-Model.git
+cd Fraud-Detection-Model
+```
+
+**2. Create a virtual environment (recommended):**
+```bash
+python -m venv .venv
+source .venv/bin/activate        # macOS / Linux
+.venv\Scripts\activate           # Windows
+```
+
+**3. Install dependencies:**
+```bash
+pip install -r requirements.txt
+```
+
+**4. Place the dataset:**
+
+Download `creditcard.csv` from Kaggle, rename it to `transactions.csv`, and place at:
+```
+data/raw/transactions.csv
+```
+
+---
+
+## ▶️ Running the Project
+
+Run the full 8-stage pipeline:
+
+```bash
+python main.py
+```
+
+This executes all stages in order and produces:
+- Processed data in `data/processed/`
+- Trained models in `models/`
+- EDA and evaluation charts in `reports/figures/`
+- Final report at `reports/report.md`
+
+---
+
+## 📊 Running the Dashboard
+
+After `main.py` completes:
+
+```bash
+streamlit run app/streamlit_app.py
+```
+
+→ Opens at [http://localhost:8501](http://localhost:8501)
+
+---
+
+## 📋 Requirements
 
 ```
 pandas
@@ -398,9 +432,44 @@ streamlit
 tabulate
 ```
 
-Install all dependencies with:
-
 ```bash
 pip install -r requirements.txt
 ```
+
+---
+
+## 🗺️ Roadmap
+
+- [ ] FastAPI endpoint — expose `/predict` for banking system integration
+- [ ] LIME explainability — add alongside SHAP for comparison
+- [ ] Threshold optimisation — auto-tune decision threshold by maximising F1
+- [ ] Deep learning baseline — neural network benchmark vs tree models
+- [ ] Drift detection — flag when retraining is needed
+- [ ] Docker containerisation — Dockerfile for reproducible deployment
+- [ ] MLflow experiment tracking — log all runs and metrics
+- [ ] Hugging Face Spaces deployment — public demo
+
+---
+
+## 📜 License
+
 ```
+MIT License — Copyright (c) 2024 Ibtesaam Aslam
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software to use, copy, modify, merge, publish, distribute, sublicense,
+and/or sell copies, subject to the copyright notice appearing in all copies.
+Provided "as is" — without warranty of any kind.
+```
+
+---
+
+<div align="center">
+
+Built with ❤️ by **[Ibtesaam Aslam](https://github.com/ibtesaamaslam)**
+
+⭐ If this project helped you learn fraud detection or ML pipelines, please give it a star!
+
+*Explainable AI for financial fraud detection.*
+
+</div>
